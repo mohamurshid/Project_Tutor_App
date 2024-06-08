@@ -54,7 +54,7 @@ const TutorProfile = () => {
         <select className="mr-4 mt-4 px-4 border-gray-400 rounded" id="Levels">
           <option value="" disabled selected>
             All Levels...
-          </option>
+          </option> // filters
           <option value="English">Primary</option>
           <option value="Maths">KCPE</option>
           <option value="Maths">KCSE</option>
