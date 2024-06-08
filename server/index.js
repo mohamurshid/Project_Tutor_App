@@ -4,8 +4,6 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth");
 const User = require("./model/User");
-const fs = require("fs");
-const util = require("util");
 
 require("dotenv").config();
 

@@ -5,6 +5,9 @@ const User = require("../model/User");
 const multer = require("multer");
 const rateLimit = require("express-rate-limit");
 const { body, validationResult } = require("express-validator");
+const path = require('path')
+const fs = require("fs");
+const util = require("util");
 
 require("dotenv").config();
 
@@ -20,7 +23,8 @@ fs.access(uploadDir)
   .catch((err) => {
     console.error("Error setting up the uploads directory:", err);
   });
-const storage = multer.diskStorage({
+
+  const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, uploadDir); // Set the file upload destination folder
   },
