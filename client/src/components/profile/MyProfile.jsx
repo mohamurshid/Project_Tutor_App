@@ -42,7 +42,7 @@ const MyProfile = ({ results }) => {
 
   return (
     <>
-      <form className="space-y-4" onSubmit={saveProfile}>
+      <form className="space-y-4 p-4" onSubmit={saveProfile}>
         <h1 className="font-semibold text-gray-700 text-xl p-4">My Profile</h1>
         <div className="flex items-center text-gray-700">
           <label htmlFor="field1" className="w-1/3 px-4">
@@ -105,8 +105,9 @@ const MyProfile = ({ results }) => {
           <button
             type="submit"
             className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-blue-600"
-          >
-            Submit
+            disabled={isSubmitting} // Disable button while loading
+            >
+          {isSubmitting ? "Saving..." : "Submit"}
           </button>
         </div>
       </form>

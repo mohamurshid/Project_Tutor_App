@@ -1,9 +1,6 @@
-import React, { useState } from "react";
-import axios from "axios";
-import { useAuth } from "./AuthContext";
+import React, { useState, useEffect } from "react";
 
-const DaySelector = () => {
-  const { user } = useAuth();
+const DaySelector = ({ availability, onAvailabilityChange }) => {
   const dayOfWeek = [
     "Monday",
     "Tuesday",
@@ -13,7 +10,6 @@ const DaySelector = () => {
     "Saturday",
     "Sunday",
   ];
-
   const timeSlots = [
     "8:00AM",
     "9:00AM",
@@ -29,29 +25,37 @@ const DaySelector = () => {
     "7:00PM",
     "8:00PM",
   ];
-  const [availability, setAvailability] = useState({});
+
+  // Initialize local state with the availability from props
+  const [localAvailability, setLocalAvailability] = useState(availability || []);
+
+  useEffect(() => {
+    const completeAvailability = dayOfWeek.map(day => ({
+      day,
+      times: availability.find(avail => avail.day === day)?.times || []
+    }));
+  
+    setLocalAvailability(completeAvailability);
+  }, [availability]);
 
   const toggleTimeSlot = (day, time) => {
-    const dayAvailability = availability[day] || {};
-    const updatedDayAvailability = {
-      ...dayAvailability,
-      [day]: {
-        ...dayAvailability,
-        [time]: !dayAvailability[time],
-      },
-    };
-    const updatedAvailability = {
-      ...availability,
-      [day]: updatedDayAvailability,
-    };
-    setAvailability(updatedAvailability);
-    //   logging availability state when a checkbox is checked. Allows me to view what the data would look like once it gets processed to the backend.
+    const updatedAvailability = localAvailability.map((avail) => {
+      if (avail.day === day) {
+        const times = avail.times.includes(time)
+          ? avail.times.filter((t) => t !== time) // Remove time if it's already included
+          : [...avail.times, time]; // Add time if not included
+        return { ...avail, times };
+      }
+      return avail;
+    });
 
-    console.log("Availablity state: ", JSON.stringify(updatedAvailability));
+    setLocalAvailability(updatedAvailability);
+    onAvailabilityChange(updatedAvailability);
   };
 
   const isTimeSlotSelected = (day, time) => {
-    return availability[day] && availability[day][time];
+    const dayData = localAvailability.find((d) => d.day === day);
+    return dayData ? dayData.times.includes(time) : false;
   };
 
   return (
@@ -70,9 +74,9 @@ const DaySelector = () => {
             ))}
           </tr>
         </thead>
-        <tbody className="overflow-x-scroll">
+        <tbody>
           {timeSlots.map((time) => (
-            <tr className="bg-white" key={time}>
+            <tr key={time} className="bg-white">
               <td className="px-2 md:px-4 py-2">{time}</td>
               {dayOfWeek.map((day) => (
                 <td
@@ -91,8 +95,6 @@ const DaySelector = () => {
           ))}
         </tbody>
       </table>
-      <div className="flex items-center justify-end mt-4">
-      </div>
     </div>
   );
 };
