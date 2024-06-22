@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
-import { jwtDecode } from "jwt-decode";
 
 const AuthContext = createContext();
 
@@ -15,10 +14,9 @@ export const AuthProvider = ({ children }) => {
   // Set up Axios to send cookies with every request
   axios.defaults.withCredentials = true;
 
-  const login = async (username, password) => {
+  const login = async (username, password, rememberMe) => {
     try {
-      console.log("Attempting login with", username, password);
-      const response = await axios.post(`http://localhost:7777/api/auth/login`, { username, password });
+      const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/login`, { username, password, rememberMe });
 
       if (response.status === 200) {
         verifyToken(); // Verifies token and fetches user data
@@ -34,7 +32,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       console.log("Logging out...");
-      await axios.post(`http://localhost:7777/api/auth/logout`);
+      await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/logout`);
       setUser(null);
       console.log("Logout successful!");
     } catch (error) {
@@ -44,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const verifyToken = async () => {
     try {
-      const response = await axios.get(`http://localhost:7777/api/auth/verify-token`);
+      const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/auth/verify-token`);
       if (response.status === 200 && response.data.valid) {
         const { userId, username } = response.data;
         const userData = { userId, username };

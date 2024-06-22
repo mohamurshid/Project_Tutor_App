@@ -1,16 +1,17 @@
-const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../model/User");
-const multer = require("multer");
+const path = require("path");
 const rateLimit = require("express-rate-limit");
+const multer = require("multer");
+const express = require("express");
+const fs = require("fs");
+const { User } = require("../model/User");
 const { body, validationResult } = require("express-validator");
-const fs = require('fs')
-const path = require('path')
 
 require("dotenv").config();
 
 const router = express.Router();
+const { JWT_SECRET } = process.env;
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, "uploads");
@@ -28,6 +29,7 @@ fs.access(uploadDir, fs.constants.F_OK, (err) => {
     console.log("Uploads directory is ready.");
   }
 });
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     console.log("Setting destination:", uploadDir);
@@ -39,12 +41,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-const { JWT_SECRET } = process.env;
-if (!JWT_SECRET) {
-  console.error("Missing JWT_SECRET in environment variables.");
-  process.exit(1);
-}
 
 // Rate limiter middleware to protect login endpoint
 const loginLimiter = rateLimit({
@@ -104,7 +100,7 @@ router.post(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const { username, password } = req.body;
+    const { username, password, rememberMe } = req.body;
 
     try {
       const user = await User.findOne({ username });
@@ -120,14 +116,14 @@ router.post(
       const token = jwt.sign(
         { userId: user._id, username: user.username },
         JWT_SECRET,
-        { expiresIn: "1d" }
+        { expiresIn: rememberMe ? "7d": '1h' }
       );
 
       // Set the token in a secure, httpOnly cookie
       res.cookie("token", token, {
         httpOnly: true,
         sameSite: "Strict",
-        maxAge: 3600000, // 1 hour
+        maxAge: rememberMe ? 7*24*60*60*1000: 60*60*1000 // 7 days when rememberMe is implemented, but 1 hour when not
       });
 
       res.json({ token });
@@ -176,7 +172,7 @@ router.post(
     const userId = req.body.userId; // Extract userId sent from the frontend
 
     try {
-      const filePath = `/uploads/${req.file.filename}`;
+      const filePath = `/routes/uploads/${req.file.filename}`;
       const user = await User.findById(userId);
       if (user) {
         user.avatarUrl = `${req.protocol}://${req.get("host")}${filePath}`;

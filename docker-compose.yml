@@ -1,4 +1,4 @@
-
+version: '3.8'
 
 services:
   mongodb:
@@ -8,7 +8,11 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - ./docker_data/:/data/db/
+      - mongodb_data:/data/db
+      - ./init-mongo:/docker-entrypoint-initdb.d
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+
+volumes:
+  mongodb_data:
